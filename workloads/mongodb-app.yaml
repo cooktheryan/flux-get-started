@@ -1,0 +1,57 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  namespace: mongo 
+  name: mongo
+  labels:
+    name: mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:  
+      name: mongo
+  template:
+    metadata:
+      namespace: mongo
+      labels:
+        name: mongo
+    spec:
+      containers:
+      - name: mongo
+        image: centos/mongodb-36-centos7 
+        env:
+        - name: MONGODB_USER
+          valueFrom:
+            secretKeyRef:
+              key: database-user
+              name: mongodb-secret
+        - name: MONGODB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: database-password
+              name: mongodb-secret
+        - name: MONGODB_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: database-admin-password
+              name: mongodb-secret
+        - name: MONGODB_DATABASE
+          valueFrom:
+            secretKeyRef:
+              key: database-name
+              name: mongodb-secret
+        ports:
+        - name: mongo
+          containerPort: 27017
+        volumeMounts:
+        - mountPath: /var/lib/mongodb/data
+          name: mongo
+        - mountPath: /opt/app-root/src/mongodb-ssl
+          name: mongodb-ssl
+      volumes:
+      - name: mongo
+        persistentVolumeClaim:
+          claimName: mongo
+      - name: mongodb-ssl
+        secret:
+          secretName: mongodb-ssl
